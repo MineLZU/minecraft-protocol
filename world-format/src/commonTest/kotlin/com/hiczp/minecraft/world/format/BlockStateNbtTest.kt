@@ -35,4 +35,30 @@ class BlockStateNbtTest {
         assertFails { decoder.decode(NbtString("example:missing")) }
         assertFails { decoder.decode(NbtCompound(emptyMap())) }
     }
+
+    @Test
+    fun capitalizedLayoutReadsAndWritesNameAndProperties() {
+        val nameDecoder = BlockStateNbtDecoder(BlockStateNbtLayout.NAME_PROPERTIES) { requested ->
+            require(requested == blockId)
+            defaults
+        }
+        val partial = SnbtFormat.decodeTagFromString("{Name:'example:machine',Properties:{powered:'true'}}")
+        val blockState = nameDecoder.decode(partial)
+        assertEquals(mapOf("facing" to "north", "powered" to "true"), blockState.properties.asMap())
+        assertEquals(
+            BlockState(blockId, defaults),
+            nameDecoder.decode(SnbtFormat.decodeTagFromString("{Name:'example:machine'}"))
+        )
+        val encoded = BlockStateNbtEncoder(BlockStateNbtLayout.NAME_PROPERTIES).encode(blockState)
+        assertEquals(setOf("Name", "Properties"), encoded.value.keys)
+        assertEquals(blockState, nameDecoder.decode(encoded))
+    }
+
+    @Test
+    fun layoutsDoNotReadEachOthersFields() {
+        val nameDecoder = BlockStateNbtDecoder(BlockStateNbtLayout.NAME_PROPERTIES) { defaults }
+        assertFails { nameDecoder.decode(NbtString(blockId.value)) }
+        assertFails { nameDecoder.decode(SnbtFormat.decodeTagFromString("{id:'example:machine'}")) }
+        assertFails { decoder.decode(SnbtFormat.decodeTagFromString("{Name:'example:machine'}")) }
+    }
 }

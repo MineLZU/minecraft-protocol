@@ -198,7 +198,10 @@ provider of complete default `StateProperties` for each `BlockId`, or use
 `VanillaRegistryData.vanillaBlockStateRegistry.createBlockStateNbtDecoder()` from
 [protocol-configuration-vanilla](../protocol-configuration-vanilla/README.md). Saved states may be compact identifiers
 or partial `id`/`properties` compounds, so their omitted properties need these definitions. The encoder writes the full
-compound form from the supplied state. For encoding, take
+compound form from the supplied state. Both codecs take an optional `BlockStateNbtLayout`; the default
+`ID_PROPERTIES` is the repository-selected release form, and `NAME_PROPERTIES` reads and writes the capitalized
+`Name`/`Properties` compounds of earlier saves. A layout only renames these fields: definitions for an earlier save must
+come from that save's release, and the rest of its chunk schema is not migrated. For encoding, take
 `chunkContext.dimensionTypeLayout.chunkLayout` and construct `ChunkNbtMetadata(dataVersion, lastUpdate)` from the values
 you want to persist, or reuse metadata returned by a prior decode:
 
